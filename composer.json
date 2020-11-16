@@ -1,0 +1,17 @@
+{
+    "name": "doomy/security",
+    "autoload": {
+      "classmap": ["src/"]
+    },
+    "require": {
+		"php": ">= 7.4",
+        "doomy/repository": "^3.0.4",
+        "doomy/ormtopus": "^1.0",
+        "nette/security": "^v3.0.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.4.3",
+        "mockery/mockery": "^1.4.2"
+    },
+	"minimum-stability": "stable"
+}
