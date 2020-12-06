@@ -21,4 +21,5 @@ class User extends Entity
     public $CHANGED_DATE;
     public $BLOCKED;
     public $EMAIL;
+    public $ROLE;
 }
