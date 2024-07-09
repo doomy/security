@@ -17,7 +17,7 @@ class Authenticator implements IAuthenticator
     private DataEntityManager $data;
 
     /**
-     * @param array<string, mixed> $config
+     * @param array<string, string> $config
      */
     public function __construct(DataEntityManager $data, array $config) {
         $this->data = $data;
