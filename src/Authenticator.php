@@ -10,17 +10,21 @@ use Nette\Security\IIdentity;
 
 class Authenticator implements IAuthenticator
 {
-    private $salt;
+    private string $salt;
 
-    const ALGO = 'SHA512';
+    const string ALGO = 'SHA512';
 
     private DataEntityManager $data;
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(DataEntityManager $data, array $config) {
         $this->data = $data;
         $this->salt = $config['salt'];
     }
 
+    /** @param string[] $credentials */
     public function authenticate(array $credentials): IIdentity
     {
         list($email, $password) = $credentials;
@@ -37,14 +41,14 @@ class Authenticator implements IAuthenticator
         return new Identity($user->USER_ID, [(string) $user->ROLE], (array) $user);
     }
 
-    public function create_hashed_password($data, $algorithm) {
+    public function create_hashed_password(string $data, string $algorithm): string  {
         $resource = hash_init($algorithm, HASH_HMAC, $this->salt);
         hash_update($resource, $data);
         $hashed_value = hash_final($resource);
         return $hashed_value;
     }
 
-    public function getUserIdentity($userId): Identity
+    public function getUserIdentity(int $userId): Identity
     {
         $user = $this->data->findOne($this->getUserModelClass(), [
             'USER_ID' => $userId,

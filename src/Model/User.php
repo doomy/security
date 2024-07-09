@@ -4,33 +4,33 @@ namespace Doomy\Security\Model;
 
 use Doomy\Repository\Model\Entity;
 
-class User extends Entity
+final class User extends Entity
 {
-    const TABLE = 't_user';
+    public const string TABLE = 't_user';
 
-    const IDENTITY_COLUMN = 'USER_ID';
+    public const string IDENTITY_COLUMN = 'USER_ID';
 
-    public $USER_ID;
+    public int $USER_ID;
 
-    public $USER_NAME;
+    public string $USER_NAME;
 
-    public $PASSWORD;
+    public string $PASSWORD;
 
-    public $FIRST_NAME;
+    public string $FIRST_NAME;
 
-    public $MIDDLE_NAME;
+    public string $MIDDLE_NAME;
 
-    public $LAST_NAME;
+    public string $LAST_NAME;
 
-    public $BIRTH_DATE;
+    public \DateTimeInterface $BIRTH_DATE;
 
-    public $CREATED_DATETIME;
+    public \DateTimeInterface $CREATED_DATETIME;
 
-    public $CHANGED_DATE;
+    public \DateTimeInterface $CHANGED_DATE;
 
-    public $BLOCKED;
+    public bool $BLOCKED;
 
-    public $EMAIL;
+    public string $EMAIL;
 
-    public $ROLE;
+    public string $ROLE;
 }
