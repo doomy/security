@@ -8,7 +8,7 @@ use Nette\Security\IAuthenticator;
 use Nette\Security\Identity;
 use Nette\Security\IIdentity;
 
-class Authenticator implements IAuthenticator
+final readonly class Authenticator implements IAuthenticator
 {
     private string $salt;
 
@@ -19,7 +19,7 @@ class Authenticator implements IAuthenticator
     /**
      * @param array<string, string> $config
      */
-    public function __construct(DataEntityManager $data, array $config) {
+    public function __construct(DataEntityManager $data, array $config, private PasswordService $passwordService) {
         $this->data = $data;
         $this->salt = $config['salt'];
     }
@@ -29,7 +29,7 @@ class Authenticator implements IAuthenticator
     {
         list($email, $password) = $credentials;
 
-        $passwordHashed = $this->create_hashed_password($password, static::ALGO);
+        $passwordHashed = $this->passwordService->hashPassword($password, self::ALGO, $this->salt);
 
         $user = $this->data->findOne($this->getUserModelClass(), [
             'EMAIL' => $email,
@@ -39,13 +39,6 @@ class Authenticator implements IAuthenticator
         if ($user->BLOCKED == 1) throw new \Exception('Your account has been blocked. Please contact support.');
 
         return new Identity($user->USER_ID, [(string) $user->ROLE], (array) $user);
-    }
-
-    public function create_hashed_password(string $data, string $algorithm): string  {
-        $resource = hash_init($algorithm, HASH_HMAC, $this->salt);
-        hash_update($resource, $data);
-        $hashed_value = hash_final($resource);
-        return $hashed_value;
     }
 
     public function getUserIdentity(int $userId): Identity
