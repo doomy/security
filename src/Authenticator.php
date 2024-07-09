@@ -12,8 +12,6 @@ final readonly class Authenticator implements IAuthenticator
 {
     private string $salt;
 
-    const string ALGO = 'SHA512';
-
     private DataEntityManager $data;
 
     /**
@@ -35,7 +33,7 @@ final readonly class Authenticator implements IAuthenticator
     {
         list($email, $password) = $credentials;
 
-        $passwordHashed = $this->passwordService->hashPassword($password, self::ALGO, $this->salt);
+        $passwordHashed = $this->passwordService->hashPassword($password, $this->salt);
 
         $user = $this->data->findOne($this->getUserModelClass(), [
             'EMAIL' => $email,

@@ -4,10 +4,10 @@ namespace Doomy\Security;
 
 final readonly class PasswordService
 {
-    public function hashPassword(string $password, string $alorithm, string $salt): string
+    public function hashPassword(string $password, string $salt): string
     {
-        $resource = hash_init($alorithm, HASH_HMAC, $salt);
-        hash_update($resource, $password);
-        return hash_final($resource);
+        return password_hash($password, PASSWORD_ARGON2ID, [
+            'salt' => $salt,
+        ]);
     }
 }
