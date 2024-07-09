@@ -15,5 +15,8 @@
         "symplify/easy-coding-standard": "^12.3",
         "phpstan/phpstan": "^1.11"
     },
-	"minimum-stability": "stable"
+	"minimum-stability": "stable",
+    "scripts": {
+        "check": "clear && vendor/bin/phpstan analyse src --level 9 && vendor/bin/ecs --fix"
+    }
 }

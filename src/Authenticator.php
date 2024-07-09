@@ -19,12 +19,18 @@ final readonly class Authenticator implements IAuthenticator
     /**
      * @param array<string, string> $config
      */
-    public function __construct(DataEntityManager $data, array $config, private PasswordService $passwordService) {
+    public function __construct(
+        DataEntityManager $data,
+        array $config,
+        private PasswordService $passwordService
+    ) {
         $this->data = $data;
         $this->salt = $config['salt'];
     }
 
-    /** @param string[] $credentials */
+    /**
+     * @param string[] $credentials
+     */
     public function authenticate(array $credentials): IIdentity
     {
         list($email, $password) = $credentials;
