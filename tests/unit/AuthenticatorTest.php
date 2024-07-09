@@ -2,12 +2,12 @@
 
 namespace unit;
 
-use Doomy\Security\Model\User;
-use Doomy\Security\Authenticator;
 use Doomy\Ormtopus\DataEntityManager;
+use Doomy\Security\Authenticator;
+use Doomy\Security\Model\User;
+use Mockery;
 use Nette\Security\Identity;
 use PHPUnit\Framework\TestCase;
-use Mockery;
 
 class AuthenticatorTest extends TestCase
 {
@@ -16,7 +16,9 @@ class AuthenticatorTest extends TestCase
         $data = Mockery::mock(DataEntityManager::class);
         $listener = Mockery::mock();
 
-        $authenticator = new TestAuthenticator($data, ['salt' => 'mock-salt']);
+        $authenticator = new TestAuthenticator($data, [
+            'salt' => 'mock-salt',
+        ]);
         $authenticator->injectListener($listener);
 
         $credentials = ['mock-email', 'mock-password'];
@@ -28,7 +30,10 @@ class AuthenticatorTest extends TestCase
             ->once()
             ->andReturn('mock-hashed-password');
         $data->shouldReceive('findOne')
-            ->with(User::class, ['EMAIL' => 'mock-email', 'PASSWORD' => 'mock-hashed-password'])
+            ->with(User::class, [
+                'EMAIL' => 'mock-email',
+                'PASSWORD' => 'mock-hashed-password',
+            ])
             ->once()
             ->andReturn($user);
 
@@ -43,7 +48,9 @@ class AuthenticatorTest extends TestCase
         $data = Mockery::mock(DataEntityManager::class);
         $listener = Mockery::mock();
 
-        $authenticator = new TestAuthenticator($data, ['salt' => 'mock-salt']);
+        $authenticator = new TestAuthenticator($data, [
+            'salt' => 'mock-salt',
+        ]);
         $authenticator->injectListener($listener);
 
         $credentials = ['mock-email', 'mock-password'];
@@ -53,7 +60,10 @@ class AuthenticatorTest extends TestCase
             ->once()
             ->andReturn('mock-hashed-password');
         $data->shouldReceive('findOne')
-            ->with(User::class, ['EMAIL' => 'mock-email', 'PASSWORD' => 'mock-hashed-password'])
+            ->with(User::class, [
+                'EMAIL' => 'mock-email',
+                'PASSWORD' => 'mock-hashed-password',
+            ])
             ->once()
             ->andReturn(NULL);
 
@@ -72,7 +82,9 @@ class AuthenticatorTest extends TestCase
         $data = Mockery::mock(DataEntityManager::class);
         $listener = Mockery::mock();
 
-        $authenticator = new TestAuthenticator($data, ['salt' => 'mock-salt']);
+        $authenticator = new TestAuthenticator($data, [
+            'salt' => 'mock-salt',
+        ]);
         $authenticator->injectListener($listener);
 
         $credentials = ['mock-email', 'mock-password'];
@@ -85,7 +97,10 @@ class AuthenticatorTest extends TestCase
             ->once()
             ->andReturn('mock-hashed-password');
         $data->shouldReceive('findOne')
-            ->with(User::class, ['EMAIL' => 'mock-email', 'PASSWORD' => 'mock-hashed-password'])
+            ->with(User::class, [
+                'EMAIL' => 'mock-email',
+                'PASSWORD' => 'mock-hashed-password',
+            ])
             ->once()
             ->andReturn($user);
 
@@ -94,7 +109,9 @@ class AuthenticatorTest extends TestCase
             $this->assertTrue(FALSE); // this should not happen
         } catch (\Exception $e) {
             $this->assertEquals(
-                'Your account has been blocked. Please contact support.', $e->getMessage(), 'exception message ok'
+                'Your account has been blocked. Please contact support.',
+                $e->getMessage(),
+                'exception message ok'
             );
         }
 
@@ -105,11 +122,15 @@ class AuthenticatorTest extends TestCase
     {
         $data = Mockery::mock(DataEntityManager::class);
 
-        $authenticator = new Authenticator($data, ['salt' => 'mock-salt']);
+        $authenticator = new Authenticator($data, [
+            'salt' => 'mock-salt',
+        ]);
 
         $user = $this->getMockUser();
 
-        $data->shouldReceive('findOne')->with(User::class, ['USER_ID' => $user->USER_ID])->once()->andReturn($user);
+        $data->shouldReceive('findOne')->with(User::class, [
+            'USER_ID' => $user->USER_ID,
+        ])->once()->andReturn($user);
 
         $identity = $authenticator->getUserIdentity($user->USER_ID);
         $this->assertUserIdentity($user, $identity);
@@ -134,14 +155,13 @@ class AuthenticatorTest extends TestCase
         $role = array_shift($roles);
         $this->assertEquals($user->ROLE, $role, 'Role present' );
     }
-
 }
 
 class TestAuthenticator extends Authenticator
 {
     private $listener;
-    const ALGO = 'mock-algo';
 
+    const ALGO = 'mock-algo';
 
     public function create_hashed_password($data, $algorithm): string
     {
@@ -152,5 +172,4 @@ class TestAuthenticator extends Authenticator
     {
         $this->listener = $listener;
     }
-
 }

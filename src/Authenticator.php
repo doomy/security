@@ -1,10 +1,9 @@
 <?php
 
-
 namespace Doomy\Security;
 
-use Doomy\Security\Model\User;
 use Doomy\Ormtopus\DataEntityManager;
+use Doomy\Security\Model\User;
 use Nette\Security\IAuthenticator;
 use Nette\Security\Identity;
 use Nette\Security\IIdentity;
@@ -12,7 +11,9 @@ use Nette\Security\IIdentity;
 class Authenticator implements IAuthenticator
 {
     private $salt;
+
     const ALGO = 'SHA512';
+
     private DataEntityManager $data;
 
     public function __construct(DataEntityManager $data, array $config) {
@@ -26,11 +27,14 @@ class Authenticator implements IAuthenticator
 
         $passwordHashed = $this->create_hashed_password($password, static::ALGO);
 
-        $user = $this->data->findOne($this->getUserModelClass(), ['EMAIL' => $email, 'PASSWORD' => $passwordHashed]);
-        if (!$user) throw new \Exception('Login failed');
+        $user = $this->data->findOne($this->getUserModelClass(), [
+            'EMAIL' => $email,
+            'PASSWORD' => $passwordHashed,
+        ]);
+        if (! $user) throw new \Exception('Login failed');
         if ($user->BLOCKED == 1) throw new \Exception('Your account has been blocked. Please contact support.');
 
-        return new Identity($user->USER_ID, [(string)$user->ROLE], (array)$user);
+        return new Identity($user->USER_ID, [(string) $user->ROLE], (array) $user);
     }
 
     public function create_hashed_password($data, $algorithm) {
@@ -42,8 +46,10 @@ class Authenticator implements IAuthenticator
 
     public function getUserIdentity($userId): Identity
     {
-        $user = $this->data->findOne($this->getUserModelClass(), ['USER_ID' => $userId]);
-        return new Identity($user->USER_ID, [(string)$user->ROLE], (array)$user);
+        $user = $this->data->findOne($this->getUserModelClass(), [
+            'USER_ID' => $userId,
+        ]);
+        return new Identity($user->USER_ID, [(string) $user->ROLE], (array) $user);
     }
 
     protected function getUserModelClass(): string
