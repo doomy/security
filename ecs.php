@@ -16,8 +16,8 @@ return ECSConfig::configure()
         NoUnusedImportsFixer::class,
     ])->withPreparedSets(
         arrays: true,
-        namespaces: true,
-        spaces: true,
-        docblocks: true,
         comments: true,
+        docblocks: true,
+        spaces: true,
+        namespaces: true,
 );

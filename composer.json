@@ -4,7 +4,7 @@
       "classmap": ["src/"]
     },
     "require": {
-		"php": ">= 7.4",
+		"php": ">=8.0",
         "doomy/repository": "^3.0.4",
         "doomy/ormtopus": "^1.0",
         "nette/security": "^v3.0.2"
