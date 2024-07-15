@@ -12,25 +12,15 @@ final class User extends Entity
 
     public int $USER_ID;
 
-    public string $USER_NAME;
+    public string $EMAIL;
 
     public string $PASSWORD;
-
-    public string $FIRST_NAME;
-
-    public string $MIDDLE_NAME;
-
-    public string $LAST_NAME;
-
-    public \DateTimeInterface $BIRTH_DATE;
 
     public \DateTimeInterface $CREATED_DATETIME;
 
     public \DateTimeInterface $CHANGED_DATE;
 
     public bool $BLOCKED;
-
-    public string $EMAIL;
 
     public string $ROLE;
 }
