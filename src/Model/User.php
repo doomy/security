@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Doomy\Security\Model;
 
 use Doomy\Repository\Model\Entity;

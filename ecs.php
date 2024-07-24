@@ -8,16 +8,15 @@ use Symplify\EasyCodingStandard\Config\ECSConfig;
 return ECSConfig::configure()
     ->withPaths([
         __DIR__ . '/src',
-        __DIR__ . '/tests',
     ])
 
     // add a single rule
     ->withRules([
         NoUnusedImportsFixer::class,
     ])->withPreparedSets(
-        arrays: true,
-        comments: true,
-        docblocks: true,
-        spaces: true,
-        namespaces: true,
-);
+        psr12: true,
+        common: true,
+        symplify: true,
+        strict: true,
+        cleanCode: true
+    );

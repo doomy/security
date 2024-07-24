@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Doomy\Security;
 
 use Doomy\Ormtopus\DataEntityManager;
@@ -39,8 +41,12 @@ final readonly class Authenticator implements IAuthenticator
             'EMAIL' => $email,
             'PASSWORD' => $passwordHashed,
         ]);
-        if (! $user) throw new \Exception('Login failed');
-        if ($user->BLOCKED == 1) throw new \Exception('Your account has been blocked. Please contact support.');
+        if (! $user) {
+            throw new \Exception('Login failed');
+        }
+        if ($user->BLOCKED === 1) {
+            throw new \Exception('Your account has been blocked. Please contact support.');
+        }
 
         return new Identity($user->USER_ID, [(string) $user->ROLE], (array) $user);
     }
@@ -53,7 +59,7 @@ final readonly class Authenticator implements IAuthenticator
         return new Identity($user->USER_ID, [(string) $user->ROLE], (array) $user);
     }
 
-    protected function getUserModelClass(): string
+    private function getUserModelClass(): string
     {
         return User::class;
     }
