@@ -12,20 +12,12 @@ use Nette\Security\IIdentity;
 
 final readonly class Authenticator implements IAuthenticator
 {
-    private string $salt;
-
     private DataEntityManager $data;
 
-    /**
-     * @param array<string, string> $config
-     */
     public function __construct(
         DataEntityManager $data,
-        array $config,
-        private PasswordService $passwordService
     ) {
         $this->data = $data;
-        $this->salt = $config['salt'];
     }
 
     /**
@@ -35,32 +27,21 @@ final readonly class Authenticator implements IAuthenticator
     {
         list($email, $password) = $credentials;
 
-        $passwordHashed = $this->passwordService->hashPassword($password, $this->salt);
-
-        $user = $this->data->findOne($this->getUserModelClass(), [
-            'EMAIL' => $email,
-            'PASSWORD' => $passwordHashed,
+        $user = $this->data->findOne(User::class, [
+            'email' => $email,
         ]);
         if (! $user) {
-            throw new \Exception('Login failed');
+            throw new \Exception('User not found');
         }
-        if ($user->BLOCKED === 1) {
+
+        if (! password_verify($password, $user->getPassword())) {
+            throw new \Exception('Invalid password');
+        }
+
+        if ($user->getBlocked()) {
             throw new \Exception('Your account has been blocked. Please contact support.');
         }
 
-        return new Identity($user->USER_ID, [(string) $user->ROLE], (array) $user);
-    }
-
-    public function getUserIdentity(int $userId): Identity
-    {
-        $user = $this->data->findOne($this->getUserModelClass(), [
-            'USER_ID' => $userId,
-        ]);
-        return new Identity($user->USER_ID, [(string) $user->ROLE], (array) $user);
-    }
-
-    private function getUserModelClass(): string
-    {
-        return User::class;
+        return new Identity($user->getId(), [(string) $user->getRole()], (array) $user);
     }
 }

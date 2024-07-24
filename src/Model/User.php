@@ -5,24 +5,59 @@ declare(strict_types=1);
 namespace Doomy\Security\Model;
 
 use Doomy\Repository\Model\Entity;
+use Doomy\Repository\TableDefinition\Attribute\Column\Identity;
+use Doomy\Repository\TableDefinition\Attribute\Column\PrimaryKey;
+use Doomy\Repository\TableDefinition\Attribute\Table;
 
+#[Table('t_user')]
 final class User extends Entity
 {
-    public const string TABLE = 't_user';
+    public function __construct(
+        private string $email,
+        private string $password,
+        private \DateTimeInterface $created,
+        private \DateTimeInterface $changed,
+        private string $role,
+        private bool $blocked = false,
+        #[Identity]
+        #[PrimaryKey]
+        private ?int $id = null
+    ) {
+    }
 
-    public const string IDENTITY_COLUMN = 'USER_ID';
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
 
-    public int $USER_ID;
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
 
-    public string $EMAIL;
+    public function getCreated(): \DateTimeInterface
+    {
+        return $this->created;
+    }
 
-    public string $PASSWORD;
+    public function getChanged(): \DateTimeInterface
+    {
+        return $this->changed;
+    }
 
-    public \DateTimeInterface $CREATED_DATETIME;
+    // TODO: we should support isBlocked() method in the Entity class
+    public function getBlocked(): bool
+    {
+        return $this->blocked;
+    }
 
-    public \DateTimeInterface $CHANGED_DATE;
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public bool $BLOCKED;
-
-    public string $ROLE;
+    public function getRole(): string
+    {
+        return $this->role;
+    }
 }
