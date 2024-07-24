@@ -1,17 +1,25 @@
 {
     "name": "doomy/security",
     "autoload": {
-      "classmap": ["src/"]
+        "classmap": ["src/"],
+        "psr-4": {
+            "Doomy\\Security\\Tests\\": "tests/"
+        }
     },
     "require": {
-		"php": ">= 7.4",
-        "doomy/repository": "^3.0.4",
-        "doomy/ormtopus": "^1.0",
+		"php": ">=8.0",
+        "doomy/ormtopus": "^5.0.0",
         "nette/security": "^v3.0.2"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.4.3",
-        "mockery/mockery": "^1.4.2"
+        "phpunit/phpunit": "^11.2",
+        "mockery/mockery": "^1.4.2",
+        "symplify/easy-coding-standard": "^12.3",
+        "phpstan/phpstan": "^1.11",
+        "doomy/testing": "^1.1.0"
     },
-	"minimum-stability": "stable"
+	"minimum-stability": "stable",
+    "scripts": {
+        "check": "clear && vendor/bin/phpstan analyse src tests --level 9 && vendor/bin/ecs --fix && php vendor/phpunit/phpunit/phpunit tests --bootstrap vendor/autoload.php --colors --stop-on-error --stop-on-failure"
+    }
 }
