@@ -11,7 +11,10 @@ use Doomy\Repository\Helper\DbHelper;
 use Doomy\Repository\RepoFactory;
 use Doomy\Repository\TableDefinition\ColumnTypeMapper;
 use Doomy\Repository\TableDefinition\TableDefinitionFactory;
-use Doomy\Security\Authenticator;
+use Doomy\Security\Authenticator\Authenticator;
+use Doomy\Security\Exception\InvalidPasswordException;
+use Doomy\Security\Exception\UserBlockedException;
+use Doomy\Security\Exception\UserNotFoundException;
 use Doomy\Security\Model\User;
 use Doomy\Security\PasswordService;
 use Doomy\Testing\AbstractDbAwareTestCase;
@@ -70,14 +73,26 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
 
     public function testAuthenticateOk(): void
     {
-        $identity = $this->authenticator->authenticate(['test@email.com', 'my-password']);
+        $identity = $this->authenticator->authenticate('test@email.com', 'my-password');
         Assert::assertInstanceOf(Identity::class, $identity);
     }
 
     public function testInvalidPassword(): void
     {
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Invalid password');
-        $this->authenticator->authenticate(['test@email.com', 'incorrect-password']);
+        $this->expectException(InvalidPasswordException::class);
+        $this->authenticator->authenticate('test@email.com', 'incorrect-password');
+    }
+
+    public function testBlockedUser(): void
+    {
+        $this->expectException(UserBlockedException::class);
+        $this->connection->query('UPDATE t_user SET blocked = 1');
+        $this->authenticator->authenticate('test@email.com', 'incorrect-password');
+    }
+
+    public function testUserNotFound(): void
+    {
+        $this->expectException(UserNotFoundException::class);
+        $this->authenticator->authenticate('non-existing-email', 'incorrect-password');
     }
 }
