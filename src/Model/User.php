@@ -7,12 +7,14 @@ namespace Doomy\Security\Model;
 use Doomy\Repository\Model\Entity;
 use Doomy\Repository\TableDefinition\Attribute\Column\Identity;
 use Doomy\Repository\TableDefinition\Attribute\Column\PrimaryKey;
+use Doomy\Repository\TableDefinition\Attribute\Column\Unique;
 use Doomy\Repository\TableDefinition\Attribute\Table;
 
 #[Table('t_user')]
 final class User extends Entity
 {
     public function __construct(
+        #[Unique]
         private string $email,
         private string $password,
         private \DateTimeInterface $created,
