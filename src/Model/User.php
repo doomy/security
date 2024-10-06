@@ -11,7 +11,7 @@ use Doomy\Repository\TableDefinition\Attribute\Column\Unique;
 use Doomy\Repository\TableDefinition\Attribute\Table;
 
 #[Table('t_user')]
-final class User extends Entity
+class User extends Entity
 {
     public function __construct(
         #[Unique]
