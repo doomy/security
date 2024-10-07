@@ -6,7 +6,7 @@ namespace Doomy\Security\JWT;
 
 use Doomy\Security\JWT\Enum\Issuer;
 use Doomy\Security\JWT\Model\JwtToken;
-use Firebase\JWT\JWT;
+use Doomy\Security\JWT\Overload\JWT;
 use Firebase\JWT\Key;
 
 final readonly class JwtService
