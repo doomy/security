@@ -1,0 +1,3 @@
+parameters:
+    excludePaths:
+        - src/JWT/Overload/JWT.php

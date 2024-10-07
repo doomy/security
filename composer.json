@@ -18,10 +18,16 @@
         "mockery/mockery": "^1.4.2",
         "symplify/easy-coding-standard": "^12.3",
         "phpstan/phpstan": "^1.11",
-        "doomy/testing": "^1.1.0"
+        "doomy/testing": "^1.1.0",
+        "phpstan/extension-installer": "^1.4"
     },
 	"minimum-stability": "stable",
     "scripts": {
         "check": "clear && vendor/bin/phpstan analyse src tests --level 9 && vendor/bin/ecs --fix && php vendor/phpunit/phpunit/phpunit tests --bootstrap vendor/autoload.php --colors --stop-on-error --stop-on-failure"
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
     }
 }
