@@ -15,10 +15,13 @@ use Doomy\Security\Authenticator\Authenticator;
 use Doomy\Security\Exception\InvalidPasswordException;
 use Doomy\Security\Exception\UserBlockedException;
 use Doomy\Security\Exception\UserNotFoundException;
+use Doomy\Security\JWT\JwtService;
+use Doomy\Security\JWT\JwtTokenFactory;
+use Doomy\Security\LoginResult;
 use Doomy\Security\Model\User;
 use Doomy\Security\PasswordService;
 use Doomy\Testing\AbstractDbAwareTestCase;
-use Nette\Security\Identity;
+use Nette\Security\IIdentity;
 use PHPUnit\Framework\Assert;
 
 final class AuthenticatorTest extends AbstractDbAwareTestCase
@@ -42,7 +45,8 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
             $this->tableDefinitionFactory
         ), $this->dbHelper, $this->tableDefinitionFactory);
         $this->data = new DataEntityManager($repoFactory, new EntityCache());
-        $this->authenticator = new Authenticator($this->data);
+        $jwtService = new JwtService('my-jwt-secret', new JwtTokenFactory());
+        $this->authenticator = new Authenticator($this->data, $jwtService);
     }
 
     protected function setUp(): void
@@ -54,6 +58,7 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
         $hashedPassword = $passwordService->hashPassword('my-password');
 
         $user = new User(
+            id: 123,
             email: 'test@email.com',
             password: $hashedPassword,
             created: new \DateTimeImmutable(),
@@ -71,28 +76,38 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
         parent::tearDown();
     }
 
-    public function testAuthenticateOk(): void
+    public function testLoginOk(): void
     {
-        $identity = $this->authenticator->authenticate('test@email.com', 'my-password');
-        Assert::assertInstanceOf(Identity::class, $identity);
+        $loginResult = $this->authenticator->login('test@email.com', 'my-password');
+        Assert::assertInstanceOf(LoginResult::class, $loginResult);
+        Assert::assertIsString($loginResult->getAccessToken());
+        Assert::assertIsString($loginResult->getRefreshToken());
+    }
+
+    public function testValidationOk(): void
+    {
+        $loginResult = $this->authenticator->login('test@email.com', 'my-password');
+        $identity = $this->authenticator->authenticate($loginResult->getAccessToken());
+        Assert::assertInstanceOf(IIdentity::class, $identity);
+        Assert::assertEquals(123, $identity->getId());
     }
 
     public function testInvalidPassword(): void
     {
         $this->expectException(InvalidPasswordException::class);
-        $this->authenticator->authenticate('test@email.com', 'incorrect-password');
+        $this->authenticator->login('test@email.com', 'incorrect-password');
     }
 
     public function testBlockedUser(): void
     {
         $this->expectException(UserBlockedException::class);
         $this->connection->query('UPDATE t_user SET blocked = 1');
-        $this->authenticator->authenticate('test@email.com', 'incorrect-password');
+        $this->authenticator->login('test@email.com', 'incorrect-password');
     }
 
     public function testUserNotFound(): void
     {
         $this->expectException(UserNotFoundException::class);
-        $this->authenticator->authenticate('non-existing-email', 'incorrect-password');
+        $this->authenticator->login('non-existing-email', 'incorrect-password');
     }
 }
