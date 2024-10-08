@@ -13,10 +13,15 @@ use Doomy\Repository\TableDefinition\ColumnTypeMapper;
 use Doomy\Repository\TableDefinition\TableDefinitionFactory;
 use Doomy\Security\Authenticator\Authenticator;
 use Doomy\Security\Exception\InvalidPasswordException;
+use Doomy\Security\Exception\InvalidTokenException;
+use Doomy\Security\Exception\TokenExpiredException;
 use Doomy\Security\Exception\UserBlockedException;
 use Doomy\Security\Exception\UserNotFoundException;
+use Doomy\Security\JWT\Enum\Issuer;
 use Doomy\Security\JWT\JwtService;
 use Doomy\Security\JWT\JwtTokenFactory;
+use Doomy\Security\JWT\Model\JwtToken;
+use Doomy\Security\JWT\Overload\JWT;
 use Doomy\Security\LoginResult;
 use Doomy\Security\Model\User;
 use Doomy\Security\PasswordService;
@@ -34,6 +39,10 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
 
     private DbHelper $dbHelper;
 
+    private JwtService $jwtService;
+
+    private JwtTokenFactory $jwtTokenFactory;
+
     public function __construct(string $name)
     {
         parent::__construct($name);
@@ -45,8 +54,9 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
             $this->tableDefinitionFactory
         ), $this->dbHelper, $this->tableDefinitionFactory);
         $this->data = new DataEntityManager($repoFactory, new EntityCache());
-        $jwtService = new JwtService('my-jwt-secret', new JwtTokenFactory());
-        $this->authenticator = new Authenticator($this->data, $jwtService);
+        $this->jwtTokenFactory = new JwtTokenFactory();
+        $this->jwtService = new JwtService('my-jwt-secret', $this->jwtTokenFactory);
+        $this->authenticator = new Authenticator($this->data, $this->jwtService);
     }
 
     protected function setUp(): void
@@ -80,16 +90,8 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
     {
         $loginResult = $this->authenticator->login('test@email.com', 'my-password');
         Assert::assertInstanceOf(LoginResult::class, $loginResult);
-        Assert::assertIsString($loginResult->getAccessToken());
-        Assert::assertIsString($loginResult->getRefreshToken());
-    }
-
-    public function testValidationOk(): void
-    {
-        $loginResult = $this->authenticator->login('test@email.com', 'my-password');
-        $identity = $this->authenticator->authenticate($loginResult->getAccessToken());
-        Assert::assertInstanceOf(IIdentity::class, $identity);
-        Assert::assertEquals(123, $identity->getId());
+        Assert::assertInstanceOf(JwtToken::class, $this->jwtService->decodeToken($loginResult->getAccessToken()));
+        Assert::assertInstanceOf(JwtToken::class, $this->jwtService->decodeToken($loginResult->getRefreshToken()));
     }
 
     public function testInvalidPassword(): void
@@ -109,5 +111,92 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
     {
         $this->expectException(UserNotFoundException::class);
         $this->authenticator->login('non-existing-email', 'incorrect-password');
+    }
+
+    public function testAuthenticationOk(): void
+    {
+        $accesToken = $this->jwtService->generateAccessToken(123);
+        $identity = $this->authenticator->authenticate($accesToken);
+        Assert::assertInstanceOf(IIdentity::class, $identity);
+        Assert::assertEquals(123, $identity->getId());
+    }
+
+    public function testAuthenticationInvalidToken(): void
+    {
+        $this->expectException(InvalidTokenException::class);
+        $this->authenticator->authenticate('invalid-token');
+    }
+
+    public function testAuthenticationExpiredToken(): void
+    {
+        $token = new JwtToken(
+            issuer: Issuer::Doomy,
+            userId: 123,
+            issuedAt: new \DateTimeImmutable('-1 week'),
+            expiresAt: new \DateTimeImmutable('-1 week')
+        );
+        $payload = $this->jwtTokenFactory->toPayload($token);
+        $accessToken = JWT::encode($payload, 'my-jwt-secret', 'HS256');
+        $this->expectException(TokenExpiredException::class);
+        $this->authenticator->authenticate($accessToken);
+    }
+
+    public function testAuthenticationUserNotFound(): void
+    {
+        $this->expectException(UserNotFoundException::class);
+        $token = $this->jwtService->generateAccessToken(999);
+        $this->authenticator->authenticate($token);
+    }
+
+    public function testAuthenticationBlockedUser(): void
+    {
+        $this->expectException(UserBlockedException::class);
+        $this->connection->query('UPDATE t_user SET blocked = 1');
+        $token = $this->jwtService->generateAccessToken(123);
+        $this->authenticator->authenticate($token);
+    }
+
+    public function testRenewAccessToken(): void
+    {
+        $refreshToken = $this->jwtService->generateRefreshToken(123);
+        $accessTokenRaw = $this->authenticator->renewAccessToken($refreshToken, User::class);
+        $accessToken = $this->jwtService->decodeToken($accessTokenRaw);
+        Assert::assertInstanceOf(JwtToken::class, $accessToken);
+        Assert::assertGreaterThan(new \DateTime(), $accessToken->getExpiresAt());
+    }
+
+    public function testRenewAccessTokenExpired(): void
+    {
+        $refreshToken = new JwtToken(
+            issuer: Issuer::Doomy,
+            userId: 123,
+            issuedAt: new \DateTimeImmutable('-1 week'),
+            expiresAt: new \DateTimeImmutable('-1 week')
+        );
+        $payload = $this->jwtTokenFactory->toPayload($refreshToken);
+        $refreshTokenRaw = JWT::encode($payload, 'my-jwt-secret', 'HS256');
+        $this->expectException(TokenExpiredException::class);
+        $this->authenticator->renewAccessToken($refreshTokenRaw, User::class);
+    }
+
+    public function testRenewAccessTokenInvalidToken(): void
+    {
+        $this->expectException(InvalidTokenException::class);
+        $this->authenticator->renewAccessToken('invalid-token', User::class);
+    }
+
+    public function testRenewAccessTokenUserNotFound(): void
+    {
+        $this->expectException(UserNotFoundException::class);
+        $refreshToken = $this->jwtService->generateRefreshToken(999);
+        $this->authenticator->renewAccessToken($refreshToken, User::class);
+    }
+
+    public function testRenewAccessTokenBlockedUser(): void
+    {
+        $this->expectException(UserBlockedException::class);
+        $this->connection->query('UPDATE t_user SET blocked = 1');
+        $refreshToken = $this->jwtService->generateRefreshToken(123);
+        $this->authenticator->renewAccessToken($refreshToken, User::class);
     }
 }

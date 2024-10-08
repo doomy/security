@@ -6,11 +6,14 @@ namespace Doomy\Security\Authenticator;
 
 use Doomy\Ormtopus\DataEntityManager;
 use Doomy\Security\Exception\InvalidPasswordException;
+use Doomy\Security\Exception\InvalidTokenException;
+use Doomy\Security\Exception\TokenExpiredException;
 use Doomy\Security\Exception\UserBlockedException;
 use Doomy\Security\Exception\UserNotFoundException;
 use Doomy\Security\JWT\JwtService;
 use Doomy\Security\LoginResult;
 use Doomy\Security\Model\User;
+use Firebase\JWT\ExpiredException;
 use Nette\Security\IAuthenticator;
 use Nette\Security\Identity;
 use Nette\Security\IIdentity;
@@ -56,7 +59,14 @@ final readonly class Authenticator implements IAuthenticator
      */
     public function authenticate(string $accessToken, string $userEntityClass = User::class): IIdentity
     {
-        $accessTokenDecoded = $this->jwtService->validateToken($accessToken);
+        try {
+            $accessTokenDecoded = $this->jwtService->decodeToken($accessToken);
+        } catch (ExpiredException) {
+            throw new TokenExpiredException();
+        } catch (\UnexpectedValueException) {
+            throw new InvalidTokenException();
+        }
+
         $userId = $accessTokenDecoded->getUserId();
 
         $user = $this->data->findById($userEntityClass, $userId);
@@ -69,5 +79,33 @@ final readonly class Authenticator implements IAuthenticator
         }
 
         return new Identity($user->getId(), [(string) $user->getRole()], (array) $user);
+    }
+
+    /**
+     * @template T of User
+     * @param class-string<T> $userEntityClass
+     */
+    public function renewAccessToken(string $refreshToken, string $userEntityClass): string
+    {
+        try {
+            $refreshTokenDecoded = $this->jwtService->decodeToken($refreshToken);
+        } catch (ExpiredException) {
+            throw new TokenExpiredException();
+        } catch (\UnexpectedValueException) {
+            throw new InvalidTokenException();
+        }
+
+        $userId = $refreshTokenDecoded->getUserId();
+
+        $user = $this->data->findById($userEntityClass, $userId);
+        if (! $user || $user->getId() === null) {
+            throw new UserNotFoundException();
+        }
+
+        if ($user->getBlocked()) {
+            throw new UserBlockedException();
+        }
+
+        return $this->jwtService->generateAccessToken($user->getId());
     }
 }
