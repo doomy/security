@@ -38,7 +38,7 @@ final readonly class JwtService
         return JWT::encode($this->tokenFactory->toPayload($token), $this->jwtSecret, 'HS256');
     }
 
-    public function validateToken(string $token): JwtToken
+    public function decodeToken(string $token): JwtToken
     {
         $rawToken = JWT::decode($token, new Key($this->jwtSecret, 'HS256'));
         return $this->tokenFactory->fromPayload((array) $rawToken);

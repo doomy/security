@@ -8,6 +8,7 @@ use ArrayAccess;
 use DateTime;
 use DomainException;
 use Exception;
+use Firebase\JWT\ExpiredException;
 use Firebase\JWT\Key;
 use InvalidArgumentException;
 use OpenSSLAsymmetricKey;
