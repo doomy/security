@@ -62,4 +62,9 @@ class User extends Entity
     {
         return $this->role;
     }
+
+    public function setId(?int $id): void
+    {
+        $this->id = $id;
+    }
 }
