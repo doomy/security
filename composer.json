@@ -10,7 +10,7 @@
 		"php": ">=8.0",
         "doomy/ormtopus": "^5.0.0",
         "nette/security": "^v3.0.2",
-        "doomy/repository": "^7.1.0",
+        "doomy/repository": "^7.1.0|^8.0.0",
         "firebase/php-jwt": "^6.10"
     },
     "require-dev": {
