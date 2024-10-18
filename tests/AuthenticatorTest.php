@@ -28,6 +28,7 @@ use Doomy\Security\PasswordService;
 use Doomy\Testing\AbstractDbAwareTestCase;
 use Nette\Security\IIdentity;
 use PHPUnit\Framework\Assert;
+use function PHPUnit\Framework\assertInstanceOf;
 
 final class AuthenticatorTest extends AbstractDbAwareTestCase
 {
@@ -198,5 +199,18 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
         $this->connection->query('UPDATE t_user SET blocked = 1');
         $refreshToken = $this->jwtService->generateRefreshToken(123);
         $this->authenticator->renewAccessToken($refreshToken, User::class);
+    }
+
+    public function testIdentityNotSet(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->authenticator->getIdentity();
+    }
+
+    public function testIdentitySet(): void
+    {
+        $accesToken = $this->jwtService->generateAccessToken(123);
+        $this->authenticator->authenticate($accesToken);
+        assertInstanceOf(IIdentity::class, $this->authenticator->getIdentity());
     }
 }
