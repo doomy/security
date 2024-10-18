@@ -15,14 +15,16 @@ use Doomy\Security\LoginResult;
 use Doomy\Security\Model\User;
 use Firebase\JWT\ExpiredException;
 use Nette\Security\IAuthenticator;
-use Nette\Security\Identity;
 use Nette\Security\IIdentity;
+use Nette\Security\SimpleIdentity;
 
-final readonly class Authenticator implements IAuthenticator
+final class Authenticator implements IAuthenticator
 {
+    private IIdentity $identity;
+
     public function __construct(
-        private DataEntityManager $data,
-        private JwtService $jwtService,
+        private readonly DataEntityManager $data,
+        private readonly JwtService $jwtService,
     ) {
     }
 
@@ -78,7 +80,8 @@ final readonly class Authenticator implements IAuthenticator
             throw new UserBlockedException();
         }
 
-        return new Identity($user->getId(), [(string) $user->getRole()], (array) $user);
+        $this->identity = new SimpleIdentity($user->getId(), [(string) $user->getRole()], (array) $user);
+        return $this->identity;
     }
 
     /**
@@ -107,5 +110,13 @@ final readonly class Authenticator implements IAuthenticator
         }
 
         return $this->jwtService->generateAccessToken($user->getId());
+    }
+
+    public function getIdentity(): IIdentity
+    {
+        if (! isset($this->identity)) {
+            throw new \LogicException('Identity not set');
+        }
+        return $this->identity;
     }
 }
