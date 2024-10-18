@@ -17,6 +17,7 @@ use Doomy\Security\Exception\InvalidTokenException;
 use Doomy\Security\Exception\TokenExpiredException;
 use Doomy\Security\Exception\UserBlockedException;
 use Doomy\Security\Exception\UserNotFoundException;
+use Doomy\Security\Identity\SimpleIdentityFactory;
 use Doomy\Security\JWT\Enum\Issuer;
 use Doomy\Security\JWT\JwtService;
 use Doomy\Security\JWT\JwtTokenFactory;
@@ -57,7 +58,8 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
         $this->data = new DataEntityManager($repoFactory, new EntityCache());
         $this->jwtTokenFactory = new JwtTokenFactory();
         $this->jwtService = new JwtService('my-jwt-secret', $this->jwtTokenFactory);
-        $this->authenticator = new Authenticator($this->data, $this->jwtService);
+        $simpleIdentityFactory = new SimpleIdentityFactory();
+        $this->authenticator = new Authenticator($this->data, $this->jwtService, $simpleIdentityFactory);
     }
 
     protected function setUp(): void

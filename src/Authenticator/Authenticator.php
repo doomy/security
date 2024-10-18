@@ -10,13 +10,13 @@ use Doomy\Security\Exception\InvalidTokenException;
 use Doomy\Security\Exception\TokenExpiredException;
 use Doomy\Security\Exception\UserBlockedException;
 use Doomy\Security\Exception\UserNotFoundException;
+use Doomy\Security\Identity\IdentityFactoryInterface;
 use Doomy\Security\JWT\JwtService;
 use Doomy\Security\LoginResult;
 use Doomy\Security\Model\User;
 use Firebase\JWT\ExpiredException;
 use Nette\Security\IAuthenticator;
 use Nette\Security\IIdentity;
-use Nette\Security\SimpleIdentity;
 
 final class Authenticator implements IAuthenticator
 {
@@ -25,6 +25,7 @@ final class Authenticator implements IAuthenticator
     public function __construct(
         private readonly DataEntityManager $data,
         private readonly JwtService $jwtService,
+        private readonly IdentityFactoryInterface $identityFactory,
     ) {
     }
 
@@ -72,7 +73,7 @@ final class Authenticator implements IAuthenticator
         $userId = $accessTokenDecoded->getUserId();
 
         $user = $this->data->findById($userEntityClass, $userId);
-        if (! $user) {
+        if (! $user || $user->getId() === null) {
             throw new UserNotFoundException();
         }
 
@@ -80,7 +81,11 @@ final class Authenticator implements IAuthenticator
             throw new UserBlockedException();
         }
 
-        $this->identity = new SimpleIdentity($user->getId(), [(string) $user->getRole()], (array) $user);
+        $this->identity = $this->identityFactory->createIdentity(
+            $user->getId(),
+            [(string) $user->getRole()],
+            (array) $user
+        );
         return $this->identity;
     }
 
