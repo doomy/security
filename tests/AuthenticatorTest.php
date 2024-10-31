@@ -12,6 +12,7 @@ use Doomy\Repository\RepoFactory;
 use Doomy\Repository\TableDefinition\ColumnTypeMapper;
 use Doomy\Repository\TableDefinition\TableDefinitionFactory;
 use Doomy\Security\Authenticator\Authenticator;
+use Doomy\Security\Exception\AuthenticationFailedException;
 use Doomy\Security\Exception\InvalidPasswordException;
 use Doomy\Security\Exception\InvalidTokenException;
 use Doomy\Security\Exception\TokenExpiredException;
@@ -214,5 +215,27 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
         $accesToken = $this->jwtService->generateAccessToken(123);
         $this->authenticator->authenticate($accesToken);
         assertInstanceOf(IIdentity::class, $this->authenticator->getIdentity());
+    }
+
+    public function testRequestAuthenticationOk(): void
+    {
+        $this->expectNotToPerformAssertions();
+        $accesToken = $this->jwtService->generateAccessToken(123);
+        $headers = [
+            'Authorization' => 'Bearer ' . $accesToken,
+        ];
+        $this->authenticator->authenticateRequest($headers);
+    }
+
+    public function testRequestAuthenticationInvalidToken(): void
+    {
+        $headers = ['Authorization' => 'Bearer XXXXXXX'];
+
+        try {
+            $this->authenticator->authenticateRequest($headers);
+        } catch (AuthenticationFailedException $exception) {
+            Assert::assertInstanceOf(InvalidTokenException::class, $exception->getPreviousException());
+        }
+
     }
 }

@@ -7,7 +7,7 @@
         }
     },
     "require": {
-		"php": ">=8.0",
+		"php": ">=8.2",
         "doomy/ormtopus": "^5.0.0",
         "nette/security": "^v3.0.2",
         "doomy/repository": "^7.1.0|^8.0.0",
@@ -23,7 +23,8 @@
     },
 	"minimum-stability": "stable",
     "scripts": {
-        "check": "clear && vendor/bin/phpstan analyse src tests --level 9 && vendor/bin/ecs --fix && php vendor/phpunit/phpunit/phpunit tests --bootstrap vendor/autoload.php --colors --stop-on-error --stop-on-failure"
+        "tests": "php vendor/phpunit/phpunit/phpunit tests --bootstrap vendor/autoload.php --colors --stop-on-error --stop-on-failure",
+        "check": ["clear && vendor/bin/phpstan analyse src tests --level 9 && vendor/bin/ecs --fix", "@tests"]
     },
     "config": {
         "allow-plugins": {
