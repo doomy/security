@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Doomy\Security\Authenticator;
 
 use Doomy\Ormtopus\DataEntityManager;
+use Doomy\Security\Exception\AuthenticationFailedException;
 use Doomy\Security\Exception\InvalidPasswordException;
 use Doomy\Security\Exception\InvalidTokenException;
 use Doomy\Security\Exception\TokenExpiredException;
@@ -123,5 +124,25 @@ class Authenticator implements IAuthenticator
             throw new \LogicException('Identity not set');
         }
         return $this->identity;
+    }
+
+    /**
+     * @template T of User
+     * @param array<string, int|string> $headers
+     * @param class-string<T> $userEntityClass
+     */
+    public function authenticateRequest(array $headers, string $userEntityClass = User::class): void
+    {
+        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+        if ($authHeader === null || ! str_starts_with((string) $authHeader, 'Bearer ')) {
+            throw new AuthenticationFailedException('Missing or invalid Authorization header');
+        }
+        assert(is_string($authHeader));
+        $accessToken = substr($authHeader, 7);
+        try {
+            $this->authenticate($accessToken, $userEntityClass);
+        } catch (TokenExpiredException|InvalidTokenException|UserNotFoundException|UserBlockedException $exception) {
+            throw new AuthenticationFailedException($exception->getMessage(), $exception);
+        }
     }
 }
