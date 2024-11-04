@@ -229,7 +229,9 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
 
     public function testRequestAuthenticationInvalidToken(): void
     {
-        $headers = ['Authorization' => 'Bearer XXXXXXX'];
+        $headers = [
+            'Authorization' => 'Bearer XXXXXXX',
+        ];
 
         try {
             $this->authenticator->authenticateRequest($headers);
