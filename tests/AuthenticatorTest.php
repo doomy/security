@@ -11,7 +11,7 @@ use Doomy\Repository\Helper\DbHelper;
 use Doomy\Repository\RepoFactory;
 use Doomy\Repository\TableDefinition\ColumnTypeMapper;
 use Doomy\Repository\TableDefinition\TableDefinitionFactory;
-use Doomy\Security\Authenticator\Authenticator;
+use Doomy\Security\Authenticator\JwtAuthenticator;
 use Doomy\Security\Exception\AuthenticationFailedException;
 use Doomy\Security\Exception\InvalidPasswordException;
 use Doomy\Security\Exception\InvalidTokenException;
@@ -34,7 +34,7 @@ use function PHPUnit\Framework\assertInstanceOf;
 
 final class AuthenticatorTest extends AbstractDbAwareTestCase
 {
-    private Authenticator $authenticator;
+    private JwtAuthenticator $authenticator;
 
     private DataEntityManager $data;
 
@@ -60,7 +60,7 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
         $this->jwtTokenFactory = new JwtTokenFactory();
         $this->jwtService = new JwtService('my-jwt-secret', $this->jwtTokenFactory);
         $simpleIdentityFactory = new SimpleIdentityFactory();
-        $this->authenticator = new Authenticator($this->data, $this->jwtService, $simpleIdentityFactory);
+        $this->authenticator = new JwtAuthenticator($this->data, $this->jwtService, $simpleIdentityFactory);
     }
 
     protected function setUp(): void
