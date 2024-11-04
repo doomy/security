@@ -19,7 +19,7 @@ use Firebase\JWT\ExpiredException;
 use Nette\Security\IAuthenticator;
 use Nette\Security\IIdentity;
 
-class Authenticator implements IAuthenticator
+class Authenticator implements IAuthenticator, AuthenticatorInterface
 {
     private IIdentity $identity;
 
