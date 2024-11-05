@@ -30,6 +30,7 @@ use Doomy\Security\PasswordService;
 use Doomy\Testing\AbstractDbAwareTestCase;
 use Nette\Security\IIdentity;
 use PHPUnit\Framework\Assert;
+use ZxcvbnPhp\Zxcvbn;
 use function PHPUnit\Framework\assertInstanceOf;
 
 final class AuthenticatorTest extends AbstractDbAwareTestCase
@@ -68,7 +69,7 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
         $userTableDefinition = $this->tableDefinitionFactory->createTableDefinition(User::class);
         $this->connection->query($this->dbHelper->getCreateTable($userTableDefinition));
 
-        $passwordService = new PasswordService();
+        $passwordService = new PasswordService(new Zxcvbn());
         $hashedPassword = $passwordService->hashPassword('my-password');
 
         $user = new User(
