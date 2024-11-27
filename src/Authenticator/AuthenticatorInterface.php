@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Doomy\Security\Authenticator;
 
 use Doomy\Security\Model\User;
+use Nette\Security\IIdentity;
 
 interface AuthenticatorInterface
 {
     /**
      * @template T of User
-     * @param array<string, int|string> $headers
      * @param class-string<T> $userEntityClass
      */
-    public function authenticateRequest(array $headers, string $userEntityClass = User::class): void;
+    public function authenticate(string $accessToken, string $userEntityClass = User::class): IIdentity;
 }

@@ -7,22 +7,35 @@ namespace Doomy\Security\Authenticator;
 use Doomy\Security\Exception\InvalidTokenException;
 use Doomy\Security\Exception\TokenExpiredException;
 use Doomy\Security\Model\User;
+use Nette\Security\IIdentity;
 
 final class DummyAuthenticator implements AuthenticatorInterface
 {
     /**
-     * @param array<string, string> $headers
+     * @template T of User
+     * @param class-string<T> $userEntityClass
      */
-    public function authenticateRequest(array $headers, string $userEntityClass = User::class): void
+    public function authenticate(string $accessToken, string $userEntityClass = User::class): IIdentity
     {
-        if (! array_key_exists('Authorization', $headers)) {
-            return;
-        }
-
-        if ($headers['Authorization'] === 'Bearer invalid') {
+        if ($accessToken === 'invalid') {
             throw new InvalidTokenException();
-        } elseif ($headers['Authorization'] === 'Bearer expired') {
+        } elseif ($accessToken === 'expired') {
             throw new TokenExpiredException();
         }
+
+        return new class() implements IIdentity {
+            public function getId(): int|string
+            {
+                return 1;
+            }
+
+            /**
+             * @return string[]
+             */
+            public function getRoles(): array
+            {
+                return ['user'];
+            }
+        };
     }
 }
