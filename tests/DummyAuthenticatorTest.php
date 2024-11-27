@@ -15,24 +15,20 @@ final class DummyAuthenticatorTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
         $dummyAuthenticator = new DummyAuthenticator();
-        $dummyAuthenticator->authenticateRequest([]);
+        $dummyAuthenticator->authenticate('valid');
     }
 
     public function testInvalidToken(): void
     {
         $this->expectException(InvalidTokenException::class);
         $dummyAuthenticator = new DummyAuthenticator();
-        $dummyAuthenticator->authenticateRequest([
-            'Authorization' => 'Bearer invalid',
-        ]);
+        $dummyAuthenticator->authenticate('invalid');
     }
 
     public function testExpiredToken(): void
     {
         $this->expectException(TokenExpiredException::class);
         $dummyAuthenticator = new DummyAuthenticator();
-        $dummyAuthenticator->authenticateRequest([
-            'Authorization' => 'Bearer expired',
-        ]);
+        $dummyAuthenticator->authenticate('expired');
     }
 }
