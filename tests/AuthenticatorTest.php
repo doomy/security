@@ -23,11 +23,11 @@ use Doomy\Security\JWT\Enum\Issuer;
 use Doomy\Security\JWT\JwtService;
 use Doomy\Security\JWT\JwtTokenFactory;
 use Doomy\Security\JWT\Model\JwtToken;
-use Doomy\Security\JWT\Overload\JWT;
 use Doomy\Security\LoginResult;
 use Doomy\Security\Model\User;
 use Doomy\Security\PasswordService;
 use Doomy\Testing\AbstractDbAwareTestCase;
+use Firebase\JWT\JWT;
 use Nette\Security\IIdentity;
 use PHPUnit\Framework\Assert;
 use ZxcvbnPhp\Zxcvbn;
@@ -59,7 +59,7 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
         ), $this->dbHelper, $this->tableDefinitionFactory);
         $this->data = new DataEntityManager($repoFactory, new EntityCache());
         $this->jwtTokenFactory = new JwtTokenFactory();
-        $this->jwtService = new JwtService('my-jwt-secret', $this->jwtTokenFactory);
+        $this->jwtService = new JwtService('my-jwt-secret-with-at-least-32-bytes', $this->jwtTokenFactory);
         $simpleIdentityFactory = new SimpleIdentityFactory();
         $this->authenticator = new JwtAuthenticator($this->data, $this->jwtService, $simpleIdentityFactory);
     }
@@ -141,7 +141,7 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
             expiresAt: new \DateTimeImmutable('-1 week')
         );
         $payload = $this->jwtTokenFactory->toPayload($token);
-        $accessToken = JWT::encode($payload, 'my-jwt-secret', 'HS256');
+        $accessToken = JWT::encode($payload, 'my-jwt-secret-with-at-least-32-bytes', 'HS256');
         $this->expectException(TokenExpiredException::class);
         $this->authenticator->authenticate($accessToken);
     }
@@ -179,7 +179,7 @@ final class AuthenticatorTest extends AbstractDbAwareTestCase
             expiresAt: new \DateTimeImmutable('-1 week')
         );
         $payload = $this->jwtTokenFactory->toPayload($refreshToken);
-        $refreshTokenRaw = JWT::encode($payload, 'my-jwt-secret', 'HS256');
+        $refreshTokenRaw = JWT::encode($payload, 'my-jwt-secret-with-at-least-32-bytes', 'HS256');
         $this->expectException(TokenExpiredException::class);
         $this->authenticator->renewAccessToken($refreshTokenRaw, User::class);
     }
