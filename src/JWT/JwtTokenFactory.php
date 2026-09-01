@@ -16,7 +16,7 @@ final readonly class JwtTokenFactory
     {
         return [
             'iss' => $token->getIssuer()
-->value,
+                ->value,
             'sub' => $token->getUserId(),
             'iat' => $token->getIssuedAt()
                 ->getTimestamp(),
